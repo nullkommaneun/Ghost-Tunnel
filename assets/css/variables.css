@@ -1,0 +1,33 @@
+:root {
+    /* --- Color Palette (Dark Theme) --- */
+    /* Backgrounds */
+    --bg-app: #0b0c10;       /* Sehr dunkles Grau, fast Schwarz */
+    --bg-panel: #1f2833;     /* Helleres Grau für Container */
+    --bg-input: #121418;     /* Eingabefeld Hintergrund */
+    
+    /* Accents */
+    --accent-primary: #66fcf1; /* Helles Cyan - "Ghost Light" */
+    --accent-dim: #45a29e;     /* Dunkleres Cyan/Teal */
+    --accent-warn: #ff4b5c;    /* Rot für Fehler/Disconnect */
+    --accent-ok: #00ff88;      /* Grün für Secure Status */
+
+    /* Typography */
+    --text-main: #c5c6c7;    /* Off-White für Text */
+    --text-muted: #8daabf;   /* Gedimmt für Metadaten */
+    
+    /* --- Spacing & Layout --- */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+
+    --radius-sm: 4px;
+    --radius-md: 12px;       /* Chat Bubbles */
+    
+    /* --- Fonts --- */
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "Fira Code", "Consolas", "Monaco", monospace; /* Für Crypto-Keys & Logs */
+
+    /* --- Transitions --- */
+    --trans-fast: 0.2s ease;
+}
