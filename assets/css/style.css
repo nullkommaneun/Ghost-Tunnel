@@ -1,0 +1,58 @@
+/* Main Layout Container */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 800px; /* Desktop-Constraint für Lesbarkeit */
+    margin: 0 auto;
+    position: relative;
+    background-color: var(--bg-app);
+    box-shadow: 0 0 50px rgba(0,0,0,0.5); /* Leichter Tiefeneffekt auf Desktop */
+}
+
+/* Header */
+.app-header {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-md);
+    background-color: var(--bg-app); /* Transparenz vermeiden für Performance */
+    border-bottom: 1px solid var(--bg-panel);
+    z-index: 10;
+}
+
+.app-title {
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+/* Chat Window (Scrollable Area) */
+.chat-window {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    scroll-behavior: smooth;
+}
+
+.message-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-top: auto; /* Drückt Nachrichten nach unten, wenn Chat leer ist */
+    min-height: 0;    /* Fix für Firefox Flexbox Bug */
+}
+
+/* Input Area (Sticky Bottom) */
+.input-area {
+    min-height: 70px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--bg-panel);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
