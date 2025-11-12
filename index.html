@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/// GHOST TUNNEL ///</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        /* Das TRON-Design (Dein Ideal) */
+        :root {
+            --neon-blue: #00f3ff;
+            --dark-bg: #0a0a0a;
+            --glass: rgba(0, 243, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--neon-blue);
+            font-family: 'Courier New', monospace; /* Terminal-Schrift */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-shadow: 0 0 10px var(--neon-blue); /* Das Leuchten */
+            border-bottom: 2px solid var(--neon-blue);
+            padding-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        /* Das Eingabefeld und Buttons */
+        input {
+            background: black;
+            border: 1px solid var(--neon-blue);
+            color: white;
+            padding: 15px;
+            width: 100%;
+            font-family: inherit;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input:focus {
+            box-shadow: 0 0 15px var(--glass);
+        }
+
+        button {
+            background: var(--glass);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 15px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        /* Der Chat-Verlauf */
+        #log {
+            flex-grow: 1;
+            border: 1px solid #333;
+            margin-bottom: 20px;
+            padding: 15px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.5);
+            font-size: 0.9em;
+        }
+
+        /* Nachrichten-Style */
+        .sys { color: #ff0055; margin-bottom: 5px; } /* Systemmeldungen in Rot/Pink */
+        .me { color: white; text-align: right; margin-bottom: 5px; }
+        .other { color: var(--neon-blue); text-align: left; margin-bottom: 5px; }
+        
+        .status-box {
+            border: 1px solid #333;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .highlight { color: var(--neon-blue); font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <h2>/// GHOST TUNNEL v1.0</h2>
+    
+    <div id="login-screen">
+        <div class="status-box">
+            STATUS: <span id="status-text">Initialisiere Uplink...</span><br>
+            ID: <span id="my-id" class="highlight">...generiere...</span>
+        </div>
+        
+        <p>ZIEL-KOORDINATEN (ID DES PARTNERS):</p>
+        <input type="text" id="remote-id" placeholder="ID einfügen...">
+        <button onclick="connect()">TUNNEL AUFBAUEN</button>
+    </div>
+
+    <div id="chat-screen" style="display:none; height: 100%;">
+        <div id="log"></div>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="msg" placeholder="Nachricht eingeben..." onkeypress="if(event.keyCode==13) send()">
+            <button onclick="send()" style="width: auto;">SENDEN</button>
+        </div>
+    </div>
+
+    <script>
+        const peer = new Peer(); 
+        let conn = null;
+
+        peer.on('open', (id) => {
+            document.getElementById('my-id').innerText = id;
+            document.getElementById('status-text').innerText = "BEREIT. WARTE AUF VERBINDUNG.";
+            document.getElementById('status-text').style.color = "#00f3ff";
+        });
+
+        peer.on('connection', (c) => {
+            conn = c;
+            setupConnection();
+        });
+
+        function connect() {
+            let partnerId = document.getElementById('remote-id').value;
+            if(!partnerId) return alert("ID fehlt!");
+            document.getElementById('status-text').innerText = "VERBINDE...";
+            conn = peer.connect(partnerId);
+            setupConnection();
+        }
+
+        function setupConnection() {
+            conn.on('open', () => {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('chat-screen').style.display = 'flex';
+                document.getElementById('chat-screen').style.flexDirection = 'column';
+                log("/// TUNNEL ETABLIERT. KANAL SICHER. ///", "sys");
+            });
+
+            conn.on('data', (data) => {
+                log("[PARTNER]: " + data, "other");
+            });
+            
+            conn.on('close', () => {
+                log("/// VERBINDUNG UNTERBROCHEN ///", "sys");
+            });
+        }
+
+        function send() {
+            let msg = document.getElementById('msg').value;
+            if(!conn || msg.trim() === "") return;
+            conn.send(msg);
+            log(msg, "me");
+            document.getElementById('msg').value = '';
+        }
+
+        function log(txt, type) {
+            let div = document.getElementById('log');
+            // Zeitstempel für den "Meister"-Look
+            let time = new Date().toLocaleTimeString();
+            div.innerHTML += `<div class="${type}">[${time}] ${txt}</div>`;
+            div.scrollTop = div.scrollHeight;
+        }
+    </script>
+</body>
+</html>
