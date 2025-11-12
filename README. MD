@@ -1,0 +1,28 @@
+# 👻 Ghost Tunnel
+
+> "Secure. Silent. Sovereign."
+
+Ghost Tunnel ist eine serverlose, browserbasierte Kommunikationsplattform, die auf absolute Privatsphäre und Autonomie ausgelegt ist.
+
+## 🎯 Die Vision
+In einer Welt der Überwachung und zentralisierten Datensilos bietet Ghost Tunnel einen Rückzugsort. Es nutzt moderne Web-Technologien (WebRTC), um einen direkten, verschlüsselten Tunnel zwischen zwei Parteien zu bohren – ohne dass Nachrichten je auf einem Server gespeichert werden.
+
+## 🛡️ Sicherheits-Architektur (The "Double Shield")
+1.  **Transport Layer:** DTLS-Verschlüsselung (Standard WebRTC).
+2.  **Application Layer:** Zusätzliche Ende-zu-Ende-Verschlüsselung (AES-GCM 256-bit) der Payloads vor der Übertragung.
+3.  **Zero-Persistence:** Keine Datenbank. Keine Logs. Sobald der Tab geschlossen wird, existiert die Konversation nicht mehr.
+
+## 🚀 Features
+* **Peer-to-Peer:** Direkte Verbindung ohne "Middleman".
+* **Stealth Mode:** Minimalistisches UI, keine Tracker.
+* **Media Capable:** Sicherer Versand von Dateien und Bildern.
+* **Diagnostic Core:** Integriertes Echtzeit-Monitoring der Verbindungsqualität (Hidden Feature).
+
+## 🛠️ Tech Stack
+* HTML5 / CSS3 (CSS Variables für Theming)
+* Vanilla JavaScript (ES6+)
+* Web Crypto API
+* PeerJS (Signaling)
+
+---
+*Developed with precision.*
