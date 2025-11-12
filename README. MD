@@ -1,28 +1,40 @@
-# 👻 Ghost Tunnel
+# Ghost Tunnel v2.0 [Enterprise Ready]
 
-> "Secure. Silent. Sovereign."
+![Status](https://img.shields.io/badge/Status-Alpha-orange?style=flat-square)
+![Security](https://img.shields.io/badge/Encryption-AES--GCM_256_+_ECDH-success?style=flat-square)
+![Bloat](https://img.shields.io/badge/Bloat-0%25-red?style=flat-square)
 
-Ghost Tunnel ist eine serverlose, browserbasierte Kommunikationsplattform, die auf absolute Privatsphäre und Autonomie ausgelegt ist.
+**Ghost Tunnel** ist eine serverlose, flüchtige P2P-Messaging-Plattform mit militärischem Sicherheitsstandard. Gehostet auf GitHub Pages, ausgeführt im Client.
 
-## 🎯 Die Vision
-In einer Welt der Überwachung und zentralisierten Datensilos bietet Ghost Tunnel einen Rückzugsort. Es nutzt moderne Web-Technologien (WebRTC), um einen direkten, verschlüsselten Tunnel zwischen zwei Parteien zu bohren – ohne dass Nachrichten je auf einem Server gespeichert werden.
+## 🛡️ Sicherheits-Architektur
 
-## 🛡️ Sicherheits-Architektur (The "Double Shield")
-1.  **Transport Layer:** DTLS-Verschlüsselung (Standard WebRTC).
-2.  **Application Layer:** Zusätzliche Ende-zu-Ende-Verschlüsselung (AES-GCM 256-bit) der Payloads vor der Übertragung.
-3.  **Zero-Persistence:** Keine Datenbank. Keine Logs. Sobald der Tab geschlossen wird, existiert die Konversation nicht mehr.
+Das System nutzt ein **Dual-Layer Encryption Protocol**:
+
+1.  **Transport Layer:** WebRTC Standard (DTLS/SRTP) für die Verbindungssicherheit.
+2.  **Application Layer:** Ende-zu-Ende-Verschlüsselung (E2EE) aller Payloads *vor* dem Netzwerk-Stack.
+
+### Technische Spezifikationen
+* **Key Exchange:** ECDH (Elliptic Curve Diffie-Hellman) P-256.
+* **Cipher:** AES-GCM (256 bit) mit einzigartigem IV pro Nachricht.
+* **Signaling:** PeerJS Server (nur für Handshake, keine Datenspeicherung).
+* **Persistence:** Zero. Ein Page-Refresh vernichtet alle Schlüssel und Logs.
 
 ## 🚀 Features
-* **Peer-to-Peer:** Direkte Verbindung ohne "Middleman".
-* **Stealth Mode:** Minimalistisches UI, keine Tracker.
-* **Media Capable:** Sicherer Versand von Dateien und Bildern.
-* **Diagnostic Core:** Integriertes Echtzeit-Monitoring der Verbindungsqualität (Hidden Feature).
 
-## 🛠️ Tech Stack
-* HTML5 / CSS3 (CSS Variables für Theming)
-* Vanilla JavaScript (ES6+)
-* Web Crypto API
-* PeerJS (Signaling)
+* **Zero-Knowledge:** Der Server sieht nur verschlüsselte Blobs.
+* **Blob-Transfer:** Sicherer Versand von Bildern und Dokumenten.
+* **Stealth Mode:** Minimalistisches UI, keine Tracker, keine Logs.
+* **Diagnostics:** Integriertes Telemetrie-Modul zur Echtzeit-Überwachung der Verbindungsqualität (Latenz, ICE-Candidates).
 
----
-*Developed with precision.*
+## 🛠️ Installation & Nutzung
+
+Es ist keine Installation notwendig.
+Besuche: `https://github.com/nullkommaneun/Ghost-Tunnel`
+
+### Local Development
+
+```bash
+git clone [https://github.com/nullkommaneun/Ghost-Tunnel.git](https://github.com/nullkommaneun/Ghost-Tunnel.git)
+cd Ghost-Tunnel
+# Da wir Vanilla JS Module nutzen, wird ein lokaler Server benötigt (CORS):
+npx http-server .
