@@ -1,5 +1,5 @@
 import { P2PEngine } from './core/p2p.js';
-import { CryptoGuard } from './core/crypto.js'; // NEU
+import { CryptoGuard } from './core/crypto.js';
 import { UIRenderer } from './ui/renderer.js';
 import { DiagOverlay } from './ui/diag.js';
 import { SYSTEM } from './config.js';
@@ -7,24 +7,23 @@ import { SYSTEM } from './config.js';
 class AppController {
     constructor() {
         this.p2p = new P2PEngine();
-        this.crypto = new CryptoGuard(); // NEU
+        this.crypto = new CryptoGuard();
         this.ui = new UIRenderer();
         this.diag = new DiagOverlay();
         
         this.isConnected = false;
-        this.isSecure = false; // Security State
+        this.isSecure = false;
     }
 
     async init() {
         this.ui.setInputState('disabled');
         this.diag.log('System init...');
 
-        // Crypto Engine hochfahren (Keys generieren)
         try {
             await this.crypto.init();
             this.diag.log('Crypto: ECDH Keys generated.');
         } catch (e) {
-            this.ui.logSystem('KRITISCHER FEHLER: Krypto-Init fehlgeschlagen.');
+            this.ui.logSystem('KRITISCH: Krypto-Init Fehler.');
             console.error(e);
             return;
         }
@@ -34,10 +33,9 @@ class AppController {
         this.p2p.onIdAssigned = (id) => {
             this.ui.setMyId(id);
             this.ui.updateStatus('disconnected');
-            this.ui.logSystem('System bereit. ID teilen zum Verbinden.');
+            this.ui.logSystem('Bereit. ID zum Verbinden nutzen.');
             this.ui.setInputState('await_id');
             
-            // Auto-Connect Support
             const urlParams = new URLSearchParams(window.location.search);
             const targetId = urlParams.get('connect');
             if (targetId) this.p2p.connect(targetId);
@@ -45,11 +43,10 @@ class AppController {
 
         this.p2p.onConnect = async (conn) => {
             this.isConnected = true;
-            this.ui.updateStatus('connected'); // Gelb/Orange (noch nicht sicher)
-            this.ui.logSystem(`Verbindung zu ${conn.peer}. Starte Handshake...`);
+            this.ui.updateStatus('connected');
+            this.ui.logSystem(`Verbunden. Starte Handshake...`);
             this.diag.log(`Channel Open: ${conn.peer}`);
 
-            // SOFORT Handshake starten: Meinen Public Key senden
             const myPublicKey = await this.crypto.getPublicKeyJwk();
             this.p2p.send({
                 type: 'HANDSHAKE',
@@ -59,34 +56,37 @@ class AppController {
         };
 
         this.p2p.onData = async (payload) => {
-            // Router für Datenpakete
-            
-            // 1. Handshake Paket
+            // 1. Handshake
             if (payload.type === 'HANDSHAKE') {
                 this.diag.log('Crypto: Peer Key received.');
-                const fingerprint = await this.crypto.computeSharedSecret(payload.key);
                 
-                this.isSecure = true;
-                this.ui.updateStatus('secure'); // GRÜN!
-                this.ui.setInputState('chat_ready');
-                this.ui.logSystem(`🔒 SICHERER KANAL ETABLIERT.`);
-                
-                // Update Diagnostics
-                this.diag.setCryptoStatus('ACTIVE (AES-GCM-256)');
-                this.diag.metrics.fingerprint.textContent = fingerprint;
-                this.diag.log(`Shared Secret derived. Fingerprint: ${fingerprint}`);
+                try {
+                    const fingerprint = await this.crypto.computeSharedSecret(payload.key);
+                    
+                    this.isSecure = true;
+                    this.ui.updateStatus('secure');
+                    this.ui.setInputState('chat_ready');
+                    this.ui.logSystem(`🔒 SICHERER KANAL ETABLIERT.`);
+                    
+                    this.diag.setCryptoStatus('ACTIVE (AES-GCM-256)');
+                    this.diag.metrics.fingerprint.textContent = fingerprint;
+                    this.diag.log(`Shared Secret derived. FP: ${fingerprint}`);
+                } catch (err) {
+                    this.ui.logSystem('❌ Handshake Fehler (siehe Status)');
+                    this.diag.log('CRITICAL: ' + err.message);
+                }
                 return;
             }
 
-            // 2. Verschlüsselte Nachricht
+            // 2. Message
             if (payload.type === 'MSG') {
-                if (!this.isSecure) return; // Ignorieren, wenn kein Key da ist
+                if (!this.isSecure) return;
                 try {
                     const plaintext = await this.crypto.decrypt(payload.cipher);
                     this.ui.renderMessage(plaintext, 'in');
                 } catch (e) {
-                    this.ui.logSystem('Fehler: Konnte Nachricht nicht entschlüsseln.');
-                    this.diag.log('Crypto Error: Decrypt Fail');
+                    this.ui.logSystem('Entschlüsselung fehlgeschlagen.');
+                    this.diag.log('Decrypt Error: ' + e.message);
                 }
             }
         };
@@ -128,15 +128,12 @@ class AppController {
                 this.p2p.connect(text);
                 input.value = '';
             } else if (this.isSecure) {
-                // VERSCHLÜSSELT SENDEN
                 try {
                     const encryptedPackage = await this.crypto.encrypt(text);
-                    
                     this.p2p.send({
                         type: 'MSG',
                         cipher: encryptedPackage
                     });
-                    
                     this.ui.renderMessage(text, 'out');
                     input.value = '';
                 } catch (e) {
