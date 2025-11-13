@@ -12,9 +12,6 @@ export class CryptoGuard {
         this.fingerprint = null; // Visual hash of the key for verification
     }
 
-    /**
-     * 1. Generate local ECDH Key Pair (Public & Private)
-     */
     async init() {
         this.keyPair = await window.crypto.subtle.generateKey(
             {
@@ -22,14 +19,11 @@ export class CryptoGuard {
                 namedCurve: CRYPTO_CONFIG.curve
             },
             false, // Private key is NOT extractable
-            ["deriveKey"]
+            ["deriveKey", "deriveBits"] // Added deriveBits capability
         );
         return this.keyPair;
     }
 
-    /**
-     * 2. Export my Public Key to send to peer (JWK format)
-     */
     async getPublicKeyJwk() {
         return await window.crypto.subtle.exportKey(
             "jwk",
@@ -37,53 +31,66 @@ export class CryptoGuard {
         );
     }
 
-    /**
-     * 3. Derive Shared AES Key from Remote Public Key + My Private Key
-     */
     async computeSharedSecret(remoteJwk) {
-        // Import remote key first
-        const remotePublicKey = await window.crypto.subtle.importKey(
-            "jwk",
-            remoteJwk,
-            { name: "ECDH", namedCurve: CRYPTO_CONFIG.curve },
-            true,
-            []
-        );
+        try {
+            // 1. Sanitize Remote Key
+            const cleanKey = {
+                kty: remoteJwk.kty,
+                crv: remoteJwk.crv,
+                x: remoteJwk.x,
+                y: remoteJwk.y,
+                ext: true 
+            };
 
-        // Derive the AES-GCM Key
-        this.sharedKey = await window.crypto.subtle.deriveKey(
-            {
-                name: "ECDH",
-                public: remotePublicKey
-            },
-            this.keyPair.privateKey,
-            {
-                name: "AES-GCM",
-                length: CRYPTO_CONFIG.length
-            },
-            false, // Shared key not extractable
-            ["encrypt", "decrypt"]
-        );
+            const remotePublicKey = await window.crypto.subtle.importKey(
+                "jwk",
+                cleanKey,
+                { name: "ECDH", namedCurve: CRYPTO_CONFIG.curve },
+                false, 
+                []     
+            );
 
-        // Generate a Fingerprint (SHA-256 hash of the key) for the UI
-        // To do this, we temporarily export the key just for hashing
-        const rawKey = await window.crypto.subtle.exportKey("raw", this.sharedKey);
-        const hashBuffer = await window.crypto.subtle.digest("SHA-256", rawKey);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        this.fingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16).toUpperCase();
-        
-        return this.fingerprint;
+            // 2. FIX: Derive Bits instead of Key directly
+            // This allows us to hash the bits for the fingerprint WITHOUT exposing the final key
+            const sharedSecretBits = await window.crypto.subtle.deriveBits(
+                {
+                    name: "ECDH",
+                    public: remotePublicKey
+                },
+                this.keyPair.privateKey,
+                256 // Length in bits
+            );
+
+            // 3. Generate Fingerprint from the raw bits
+            const hashBuffer = await window.crypto.subtle.digest("SHA-256", sharedSecretBits);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            this.fingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16).toUpperCase();
+
+            // 4. Import the bits as the final LOCKED working key
+            this.sharedKey = await window.crypto.subtle.importKey(
+                "raw",
+                sharedSecretBits,
+                {
+                    name: "AES-GCM",
+                    length: CRYPTO_CONFIG.length
+                },
+                false, // IMPORTANT: Key remains non-extractable!
+                ["encrypt", "decrypt"]
+            );
+            
+            return this.fingerprint;
+
+        } catch (e) {
+            console.error("Crypto Handshake Error:", e);
+            throw new Error(`Handshake Failed: ${e.message}`);
+        }
     }
 
-    /**
-     * Encrypt Message (AES-GCM)
-     * Returns object with { iv, ciphertext }
-     */
     async encrypt(text) {
         if (!this.sharedKey) throw new Error("No Shared Key established");
 
         const enc = new TextEncoder();
-        const iv = window.crypto.getRandomValues(new Uint8Array(12)); // 12 bytes IV is standard for GCM
+        const iv = window.crypto.getRandomValues(new Uint8Array(12)); 
 
         const ciphertextBuffer = await window.crypto.subtle.encrypt(
             {
@@ -94,16 +101,12 @@ export class CryptoGuard {
             enc.encode(text)
         );
 
-        // Convert buffers to Base64 strings for transmission
         return {
             iv: this.arrayBufferToBase64(iv),
             data: this.arrayBufferToBase64(ciphertextBuffer)
         };
     }
 
-    /**
-     * Decrypt Message
-     */
     async decrypt(payload) {
         if (!this.sharedKey) throw new Error("No Shared Key established");
 
