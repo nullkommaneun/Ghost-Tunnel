@@ -2,10 +2,10 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.peerjs.com wss://*.peerjs.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; connect-src 'self' https://*.peerjs.com wss://*.peerjs.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:;">
 
     <title>Ghost Tunnel v2.0</title>
     
@@ -28,7 +28,7 @@
 
         <section id="chat-window" class="chat-window">
             <div id="message-list" class="message-list">
-                <div class="system-message">Warte auf Verbindung...</div>
+                <div class="system-message">System start...</div>
             </div>
         </section>
 
@@ -36,7 +36,7 @@
             <input type="file" id="file-input" hidden>
             <button id="btn-attach" class="icon-btn" title="Datei anhängen">📎</button>
             
-            <textarea id="msg-input" placeholder="Nachricht eingeben..." rows="1"></textarea>
+            <textarea id="msg-input" placeholder="Initialisiere..." rows="1" disabled></textarea>
             
             <button id="btn-send" class="send-btn">➤</button>
         </footer>
@@ -60,8 +60,9 @@
             </div>
         </div>
     </div>
-<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
     <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>
- 
